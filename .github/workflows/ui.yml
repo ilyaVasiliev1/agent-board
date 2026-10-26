@@ -1,0 +1,36 @@
+name: UI
+
+# Проверка и сборка интерфейса. На main собранные файлы публикуются в ветку ui:
+# оттуда их забирают страницы «Облако» на серверах проектов (workflow Status).
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ui-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - name: Публикация сборки в ветку ui
+        if: github.event_name == 'push'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: dist
+          publish_branch: ui
+          force_orphan: true
+          commit_message: "Сборка интерфейса ${{ github.sha }}"

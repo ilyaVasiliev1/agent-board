@@ -10,6 +10,9 @@ const TYPES = {
   '.json': 'application/json; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon',
+  '.woff2': 'font/woff2',
+  '.webmanifest': 'application/manifest+json',
+  '.map': 'application/json',
 };
 const MAX_BODY = 1_000_000;
 

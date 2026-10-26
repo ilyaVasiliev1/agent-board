@@ -1,0 +1,106 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/inter";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-sans);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-state-idea: var(--state-idea);
+  --color-state-run: var(--state-run);
+  --color-state-review: var(--state-review);
+  --color-state-fail: var(--state-fail);
+  --color-state-done: var(--state-done);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+}
+
+/* Цвет означает только состояние задачи: всё остальное графит на холодной бумаге. */
+:root {
+  --background: #eef1f3;
+  --foreground: #101417;
+  --card: #ffffff;
+  --card-foreground: #101417;
+  --popover: #ffffff;
+  --popover-foreground: #101417;
+  --primary: #101417;
+  --primary-foreground: #f4f7f8;
+  --secondary: #f6f8f9;
+  --secondary-foreground: #101417;
+  --muted: #f6f8f9;
+  --muted-foreground: #66737b;
+  --accent: #e7ecef;
+  --accent-foreground: #101417;
+  --destructive: #c8382e;
+  --border: #dbe1e5;
+  --input: #c2cbd1;
+  --ring: #2f6fed;
+  --radius: 0.5rem;
+  --state-idea: #77858f;
+  --state-run: #2f6fed;
+  --state-review: #b86e00;
+  --state-fail: #c8382e;
+  --state-done: #28804f;
+}
+
+.dark {
+  --background: #0d1012;
+  --foreground: #eef2f4;
+  --card: #161a1d;
+  --card-foreground: #eef2f4;
+  --popover: #161a1d;
+  --popover-foreground: #eef2f4;
+  --primary: #eef2f4;
+  --primary-foreground: #0d1012;
+  --secondary: #1b2024;
+  --secondary-foreground: #eef2f4;
+  --muted: #1b2024;
+  --muted-foreground: #8b99a1;
+  --accent: #232a2f;
+  --accent-foreground: #eef2f4;
+  --destructive: #f0736a;
+  --border: #2a3237;
+  --input: #3b464c;
+  --ring: #6c9bff;
+  --state-idea: #8c9aa4;
+  --state-run: #6c9bff;
+  --state-review: #e0a03a;
+  --state-fail: #f0736a;
+  --state-done: #54c186;
+}
+
+@layer base {
+  * { @apply border-border outline-ring/50; }
+  html, body, #root { height: 100%; }
+  body { @apply bg-background font-sans text-foreground antialiased; overflow: hidden; }
+}
+
+@keyframes breathe { 50% { opacity: 0.25; transform: scale(0.8); } }
+@keyframes pane-in { from { opacity: 0; transform: translateX(14px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}

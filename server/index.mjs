@@ -1,4 +1,5 @@
 // Локальная доска агентов. Запуск: node server/index.mjs (порт 5194 или PORT).
+import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ClaudeCloud } from './claude.mjs';
@@ -14,6 +15,8 @@ const PORT = Number(process.env.PORT ?? 5194);
 const SYNC_INTERVAL_MS = 20_000;
 
 const config = loadConfig(ROOT);
+const WEB_ROOT = join(ROOT, 'dist');
+if (!existsSync(join(WEB_ROOT, 'index.html'))) console.warn('Интерфейс не собран: выполните npm run build (или запускайте через npm start).');
 const service = new TaskService({
   store: new TaskStore(join(ROOT, 'data', 'tasks.json')),
   github: new GitHub(),
@@ -21,7 +24,7 @@ const service = new TaskService({
   workspace: new DispatchWorkspace({ root: join(ROOT, 'data', 'dispatch') }),
   config,
 });
-const server = createHttpServer({ service, config, webRoot: join(ROOT, 'web'), port: PORT });
+const server = createHttpServer({ service, config, webRoot: WEB_ROOT, port: PORT });
 
 // Синхронизация идёт цепочкой таймеров, а не интервалом: следующий цикл не начнётся, пока не закончился предыдущий.
 let timer;
