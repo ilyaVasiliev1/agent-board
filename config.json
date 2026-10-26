@@ -5,9 +5,22 @@
       "title": "Зерно · сайт кофейни",
       "repo": "ilyaVasiliev1/coffee-site",
       "dir": "~/Developer/laboratory/coffee-site",
-      "previewUrl": "https://ilyavasiliev1.github.io/coffee-site/preview/task-{n}/",
-      "reportUrl": "https://ilyavasiliev1.github.io/coffee-site/preview/task-{n}-report/",
-      "stagingUrl": "https://ilyavasiliev1.github.io/coffee-site/staging/"
+      "stagingUrl": "https://ilyavasiliev1.github.io/coffee-site/staging/",
+      "cloud": {
+        "mode": "full",
+        "summary": "Веб-сайт: код, тесты и превью работают в облаке.",
+        "can": [
+          "правки интерфейса, меню и текстов",
+          "тесты Playwright",
+          "превью и скриншоты страницы"
+        ],
+        "cannot": [
+          "проверка на реальных российских хостах",
+          "задачи, которым нужен ваш Mac"
+        ],
+        "autoAllowed": true
+      },
+      "baseBranch": "staging"
     }
   ],
   "models": [

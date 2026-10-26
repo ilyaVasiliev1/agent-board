@@ -1,0 +1,11 @@
+{
+  "name": "agent-board",
+  "private": true,
+  "type": "module",
+  "description": "Локальная доска задач для облачных агентов Claude",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node server/index.mjs",
+    "test": "node --test 'test/*.test.mjs'"
+  }
+}
