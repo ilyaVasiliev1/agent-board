@@ -1,0 +1,9 @@
+{
+  "name": "Облако: что сейчас делают агенты",
+  "short_name": "Облако",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#101417",
+  "theme_color": "#101417",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

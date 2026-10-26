@@ -216,3 +216,4 @@ dialog::backdrop { background: rgb(8 10 12 / 0.45); }
 /* Пока открыта панель задачи, колонки уже, чтобы доска помещалась целиком */
 .layout:has(.pane:not([hidden])) .col { flex: 1 1 190px; min-width: 170px; }
 .layout:has(.pane:not([hidden])) .col.quiet { flex: 0 0 110px; min-width: 0; }
+.p-actions[hidden] { display: none; }

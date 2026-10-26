@@ -1,13 +1,13 @@
 import { el } from './dom.js';
 import { ago } from './format.js';
-import { COLUMNS, effortName, modelName, projectTasks, state } from './state.js';
+import { effortName, emptyText, modelName, projectTasks, state, taskNumber, visibleColumns } from './state.js';
 
 /** Доска: колонки создаются один раз, карточки обновляются точечно по подписи, без перерисовки всего списка. */
 export function createBoard({ container, onSelect }) {
   const cards = new Map();
   const columns = new Map();
 
-  for (const column of COLUMNS) {
+  for (const column of visibleColumns()) {
     const count = el('span', { className: 'n' });
     const list = el('div', { className: 'col-list' });
     const section = el('section', { className: 'col', dataset: { col: column.id } }, el('div', { className: 'col-head' }, el('span', { textContent: column.title }), count), list);
@@ -21,7 +21,7 @@ export function createBoard({ container, onSelect }) {
   ]);
 
   function buildCard(t) {
-    const meta = el('div', { className: 'm' }, el('b', { textContent: `#${t.id}` }), el('span', { textContent: modelName(t.model) }), el('span', { textContent: effortName(t.effort) }));
+    const meta = el('div', { className: 'm' }, el('b', { textContent: `#${taskNumber(t)}` }), t.model ? el('span', { textContent: modelName(t.model) }) : null, t.effort ? el('span', { textContent: effortName(t.effort) }) : null);
     if (t.auto) meta.append(el('span', { textContent: 'без проверки' }));
     if (t.status === 'running') meta.prepend(el('span', { className: 'live', textContent: t.pr ? 'пишет код' : 'запускается' }), el('span', { textContent: ago(t.sentAt) }));
 
@@ -46,7 +46,7 @@ export function createBoard({ container, onSelect }) {
     for (const { section, count, list, spec } of columns.values()) {
       const items = tasks.filter((t) => t.status === spec.id).sort((a, b) => b.id - a.id);
       count.textContent = items.length || '';
-      section.classList.toggle('quiet', !items.length && !spec.empty);
+      section.classList.toggle('quiet', !items.length && !emptyText(spec));
       list.querySelector('.col-empty')?.remove();
 
       let previous = null;
@@ -64,7 +64,7 @@ export function createBoard({ container, onSelect }) {
         if (expected !== node) list.insertBefore(node, expected);
         previous = node;
       }
-      if (!items.length && spec.empty) list.append(el('div', { className: 'col-empty', textContent: spec.empty }));
+      if (!items.length && emptyText(spec)) list.append(el('div', { className: 'col-empty', textContent: emptyText(spec) }));
     }
   }
 

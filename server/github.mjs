@@ -1,6 +1,6 @@
 import { run as defaultRun, runJson as defaultRunJson } from './proc.mjs';
 
-const PR_FIELDS = 'number,url,state,isDraft,body,mergedAt,updatedAt,title,headRefName,headRefOid';
+const PR_FIELDS = 'number,url,state,isDraft,body,mergedAt,closedAt,createdAt,updatedAt,title,headRefName,headRefOid';
 
 // Результат проверки приводится к одному виду: у check run и у status поля называются по-разному.
 const normalizeCheck = (c) => ({ name: c.name ?? c.context, result: (c.conclusion || c.status || c.state || '').toUpperCase() });

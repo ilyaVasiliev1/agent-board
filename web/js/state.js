@@ -1,8 +1,8 @@
 // Общее состояние клиента и всё, что выводится из конфигурации проекта.
 export const COLUMNS = [
-  { id: 'backlog', title: 'Идеи', empty: 'Запишите задачу сверху. Она подождёт здесь, пока вы не отправите её в облако.' },
+  { id: 'backlog', title: 'Идеи', empty: 'Запишите задачу сверху. Она подождёт здесь, пока вы не отправите её в облако.', liveOnly: true },
   { id: 'running', title: 'В работе', empty: 'Здесь задачи, которые сейчас делает облако.' },
-  { id: 'review', title: 'На проверке', empty: 'Готовые результаты появятся здесь: можно принять, доработать или отклонить.' },
+  { id: 'review', title: 'На проверке', empty: 'Готовые результаты появятся здесь: можно принять, доработать или отклонить.', emptyReadOnly: 'Готовые результаты появятся здесь.' },
   { id: 'failed', title: 'Ошибка', empty: '' },
   { id: 'done', title: 'Принято', empty: '' },
 ];
@@ -19,6 +19,10 @@ function write(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* приватный режим: работаем без памяти */ }
 }
 
+/** Колонки, которые есть в текущем режиме: на странице просмотра идей нет, они живут только на Маке. */
+export const visibleColumns = () => COLUMNS.filter((c) => !(state.readOnly && c.liveOnly));
+export const emptyText = (column) => (state.readOnly ? column.emptyReadOnly ?? column.empty : column.empty);
+
 export const state = {
   config: null,
   project: null,
@@ -27,6 +31,7 @@ export const state = {
   tab: 'result',
   reworkOpen: false,
   settings: read(SETTINGS_KEY, {}),
+  readOnly: false,
 };
 
 export function setConfig(config) {
@@ -48,6 +53,8 @@ export const defaults = () => ({
 });
 export const modelName = (id) => state.config.models.find((m) => m.id === id)?.title ?? id;
 export const effortName = (id) => (state.config.efforts.find((e) => e.id === id)?.title ?? id).toLowerCase();
+/** Номер задачи для показа: у снимков с сервера id синтетический, настоящий номер лежит в number. */
+export const taskNumber = (t) => t.number ?? t.id;
 export const cloudProfile = () => state.project.cloud;
 export const isCloudAllowed = () => cloudProfile().mode !== 'local';
 export const projectTasks = () => state.tasks.filter((t) => t.projectId === state.project.id);

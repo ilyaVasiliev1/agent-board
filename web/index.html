@@ -4,11 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Доска агентов</title>
+    <meta name="theme-color" content="#101417" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="manifest.webmanifest" crossorigin="use-credentials" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <header class="top">
-      <div class="brand"><span class="mark" aria-hidden="true"></span>Агенты</div>
+      <div class="brand"><span class="mark" aria-hidden="true"></span><span id="brand-name">Агенты</span></div>
       <label class="project">
         <span class="sr">Проект</span>
         <select id="project"></select>
@@ -22,7 +26,7 @@
       <button id="btn-help" class="icon" aria-label="Горячие клавиши" title="Горячие клавиши (?)">?</button>
     </header>
 
-    <section class="composer" aria-label="Новая задача">
+    <section class="composer" aria-label="Новая задача" data-live-only>
       <textarea id="c-text" rows="1" placeholder="Что нужно сделать? Опишите своими словами, первая строка станет заголовком" aria-label="Текст задачи"></textarea>
       <div class="c-row">
         <label class="pick"><span>Модель</span><select id="c-model"></select></label>
@@ -43,9 +47,9 @@
     <dialog id="dlg-settings">
       <form method="dialog" class="dlg">
         <h2>Настройки</h2>
-        <p class="dlg-note">Значения по умолчанию подставляются в новые задачи. Менять их для отдельной задачи можно при отправке.</p>
-        <label class="field"><span>Модель по умолчанию</span><select id="s-model"></select></label>
-        <label class="field"><span>Уровень усилий по умолчанию</span><select id="s-effort"></select></label>
+        <p class="dlg-note" data-live-only>Значения по умолчанию подставляются в новые задачи. Менять их для отдельной задачи можно при отправке.</p>
+        <label class="field" data-live-only><span>Модель по умолчанию</span><select id="s-model"></select></label>
+        <label class="field" data-live-only><span>Уровень усилий по умолчанию</span><select id="s-effort"></select></label>
         <fieldset class="field">
           <legend>Тема</legend>
           <div class="seg" id="s-theme" role="radiogroup" aria-label="Тема">
@@ -62,11 +66,11 @@
       <form method="dialog" class="dlg">
         <h2>Горячие клавиши</h2>
         <dl class="keys">
-          <dt><kbd>N</kbd></dt><dd>Новая задача</dd>
+          <dt data-live-only><kbd>N</kbd></dt><dd data-live-only>Новая задача</dd>
           <dt><kbd>J</kbd> <kbd>K</kbd></dt><dd>Следующая и предыдущая карточка</dd>
           <dt><kbd>Esc</kbd></dt><dd>Закрыть панель задачи</dd>
-          <dt><kbd>⌘</kbd><kbd>↵</kbd></dt><dd>Отправить задачу в облако</dd>
-          <dt><kbd>⌘</kbd><kbd>⇧</kbd><kbd>↵</kbd></dt><dd>Сохранить в идеи</dd>
+          <dt data-live-only><kbd>⌘</kbd><kbd>↵</kbd></dt><dd data-live-only>Отправить задачу в облако</dd>
+          <dt data-live-only><kbd>⌘</kbd><kbd>⇧</kbd><kbd>↵</kbd></dt><dd data-live-only>Сохранить в идеи</dd>
           <dt><kbd>?</kbd></dt><dd>Эта подсказка</dd>
         </dl>
         <menu><button value="close" class="primary">Понятно</button></menu>

@@ -1,6 +1,6 @@
 import { el } from './dom.js';
 import { ago, clock, md } from './format.js';
-import { STATE_COLOR, STATE_NAME, cloudProfile, defaults, effortName, isCloudAllowed, modelName, selectedTask, state } from './state.js';
+import { STATE_COLOR, STATE_NAME, cloudProfile, defaults, effortName, isCloudAllowed, modelName, selectedTask, state, taskNumber } from './state.js';
 import { fillSelect } from './controls.js';
 
 const TABS = [['result', 'Результат'], ['progress', 'Ход работы'], ['task', 'Задача']];
@@ -56,9 +56,9 @@ export function createPane({ container, loadLog, actions }) {
       el('button', { className: 'p-close', textContent: '×', ariaLabel: 'Закрыть', title: 'Закрыть (Esc)', on: { click: actions.closePane } }),
       el('div', { className: 'pills' },
         el('span', { className: 'pill state', textContent: STATE_NAME[t.status] ?? t.status }),
-        el('span', { className: 'pill', textContent: `#${t.id}` }),
-        el('span', { className: 'pill', textContent: modelName(t.model) }),
-        el('span', { className: 'pill', textContent: `усилие ${effortName(t.effort)}` }),
+        el('span', { className: 'pill', textContent: `#${taskNumber(t)}` }),
+        t.model ? el('span', { className: 'pill', textContent: modelName(t.model) }) : null,
+        t.effort ? el('span', { className: 'pill', textContent: `усилие ${effortName(t.effort)}` }) : null,
         t.auto ? el('span', { className: 'pill', textContent: 'без проверки' }) : null));
   }
 
@@ -124,6 +124,7 @@ export function createPane({ container, loadLog, actions }) {
 
   function footer(t) {
     const box = el('div', { className: 'p-actions' });
+    if (state.readOnly) { box.hidden = true; return box; }
     const act = (handler) => (event) => { event.currentTarget.disabled = true; handler(); };
 
     if (t.status === 'backlog' || t.status === 'failed') {
