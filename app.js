@@ -150,9 +150,12 @@ async function refreshDrawer() {
   const link = (text, href) => links.append(el('a', { textContent: text, href, target: '_blank', rel: 'noopener' }));
   if (t.sessionUrl) link('Сессия Claude (полный лог)', t.sessionUrl);
   if (log.pr) link(`PR #${log.pr.number}`, log.pr.url);
-  if (log.comments.some((c) => c.body.startsWith('## Превью'))) {
-    link('Превью сайта', fill(project.previewUrl, t.id));
-    link('Отчёт тестов и скриншоты', fill(project.reportUrl, t.id));
+  // Ссылки берём из комментария workflow: имя ветки задачи может нести хвост от облака.
+  const preview = [...log.comments].reverse().find((c) => c.body.startsWith('## Превью'));
+  if (preview) {
+    const pick = (label) => new RegExp(`${label}:\\s*(https?://\\S+)`).exec(preview.body)?.[1];
+    link('Превью сайта', pick('Сайт') ?? fill(project.previewUrl, t.id));
+    link('Отчёт тестов и скриншоты', pick('Отчёт тестов со скриншотами') ?? fill(project.reportUrl, t.id));
   }
   if (t.status === 'done') link('Бета', project.stagingUrl);
   body.append(links);

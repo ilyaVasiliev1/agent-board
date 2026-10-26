@@ -117,11 +117,15 @@ async function close(task) {
 // Состояние задачи выводится из PR: draft и «Ход работы» — идёт работа, «## Отчёт» без draft — готово к проверке.
 async function syncTask(task) {
   const project = projectOf(task.project);
-  const prs = await gh(['pr', 'list', '-R', project.repo, '--head', task.branch, '--state', 'all',
-    '--json', 'number,url,state,isDraft,body,mergedAt,updatedAt,title']);
-  const pr = prs[0];
+  // Облако дописывает к имени ветки случайный хвост (claude/task-5-bxeue1), поэтому PR ищется по префиксу.
+  const prs = await gh(['pr', 'list', '-R', project.repo, '--state', 'all', '--limit', '50',
+    '--json', 'number,url,state,isDraft,body,mergedAt,updatedAt,title,headRefName']);
+  const base = `claude/task-${task.id}`;
+  const pr = prs.filter((p) => p.headRefName === base || p.headRefName.startsWith(`${base}-`))
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
   if (!pr) return;
   task.pr = pr;
+  task.branch = pr.headRefName;
   if (pr.mergedAt) { if (task.status !== 'done') { task.status = 'done'; event(task, 'PR влит.'); } return; }
   if (pr.state === 'CLOSED') { if (task.status !== 'closed') { task.status = 'closed'; event(task, 'PR закрыт.'); } return; }
   const hasReport = pr.body?.startsWith('## Отчёт');
