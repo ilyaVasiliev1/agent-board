@@ -45,6 +45,8 @@ export function createHttpServer({ service, config, webRoot, port }) {
   const routes = [
     ['GET', /^\/api\/state$/, async () => ({ tasks: service.list(), at: new Date().toISOString() })],
     ['GET', /^\/config\.json$/, async () => config],
+    // Интерфейс по этому ответу узнаёт, что рядом локальный сервер доски (на странице просмотра лежит свой mode.json).
+    ['GET', /^\/mode\.json$/, async () => ({ mode: 'live' })],
     ['POST', /^\/api\/tasks$/, async ({ body }) => service.create(body)],
     ['GET', /^\/api\/tasks\/(\d+)\/log$/, async ({ params }) => service.log(params[0])],
     ['POST', /^\/api\/tasks\/(\d+)\/(send|rework|accept|close)$/, async ({ params, body }) => {

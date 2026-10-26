@@ -21,4 +21,12 @@ describe('parseMarkdown', () => {
     expect(blocks[2]).toMatchObject({ kind: 'list' });
     expect((blocks[2] as { items: unknown[] }).items).toHaveLength(2);
   });
+
+  it('пункты-галочки отличаются от обычных и не несут «[x]» в тексте', () => {
+    const [list] = parseMarkdown('- [x] ветка\n- [ ] тесты\n- обычный');
+    expect(list).toMatchObject({ kind: 'list' });
+    const items = (list as { items: { task?: string; inlines: { value?: string }[] }[] }).items;
+    expect(items.map((i) => i.task)).toEqual(['done', 'todo', undefined]);
+    expect(items[0]?.inlines[0]?.value).toBe('ветка');
+  });
 });

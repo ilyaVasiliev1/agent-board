@@ -10,13 +10,14 @@ export interface DataSource {
 }
 
 /**
- * Режим определяется по месту запуска: отвечает локальный сервер доски, значит, страница управляет задачами;
- * иначе (страница на сервере, рядом лежат снимки data/*.json) она только показывает облачные задачи.
+ * Режим определяет mode.json: локальный сервер доски отвечает «live» (страница управляет задачами), а на странице
+ * просмотра лежит файл со значением «static» (она только показывает облачные задачи из снимков data/*.json).
  */
 export async function detectMode(): Promise<Mode> {
   try {
-    const response = await fetch('/api/state', { headers: { Accept: 'application/json' } });
-    return response.ok && (response.headers.get('content-type') ?? '').includes('json') ? 'live' : 'static';
+    const response = await fetch('/mode.json', { cache: 'no-store' });
+    const { mode } = (await response.json()) as { mode?: string };
+    return mode === 'live' ? 'live' : 'static';
   } catch {
     return 'static';
   }

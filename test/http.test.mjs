@@ -51,6 +51,10 @@ before(async () => {
 });
 after(() => server.close());
 
+test('режим: сервер доски отвечает «live»', async () => {
+  assert.deepEqual((await request('/mode.json')).json(), { mode: 'live' });
+});
+
 test('состояние и конфиг отдаются', async () => {
   assert.equal((await request('/api/state')).json().tasks[0].title, 'a');
   assert.deepEqual((await request('/config.json')).json(), { projects: [] });

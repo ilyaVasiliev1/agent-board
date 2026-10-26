@@ -1,3 +1,4 @@
+import { CheckIcon, CircleIcon } from 'lucide-react';
 import { Fragment } from 'react';
 import { parseInline, parseMarkdown, type Inline } from '@/lib/markdown';
 
@@ -18,7 +19,19 @@ export function Markdown({ source, className }: { source: string; className?: st
     <div className={className}>
       {parseMarkdown(source).map((block, i) => {
         if (block.kind === 'heading') return <h3 key={i} className="mt-3.5 mb-1 text-sm font-semibold first:mt-1.5"><Inlines items={block.inlines} /></h3>;
-        if (block.kind === 'list') return <ul key={i} className="my-1.5 list-disc space-y-0.5 pl-5">{block.items.map((li, j) => <li key={j}><Inlines items={li} /></li>)}</ul>;
+        if (block.kind === 'list') {
+          return (
+            <ul key={i} className="my-1.5 space-y-0.5">
+              {block.items.map((li, j) => (
+                <li key={j} className={li.task ? 'flex items-start gap-2' : 'ml-5 list-disc'}>
+                  {li.task === 'done' && <CheckIcon aria-label="сделано" className="mt-[3px] size-3.5 shrink-0 text-state-done" />}
+                  {li.task === 'todo' && <CircleIcon aria-label="не сделано" className="mt-[3px] size-3.5 shrink-0 text-muted-foreground" />}
+                  <span><Inlines items={li.inlines} /></span>
+                </li>
+              ))}
+            </ul>
+          );
+        }
         return <p key={i} className="my-1.5"><Inlines items={block.inlines} /></p>;
       })}
     </div>

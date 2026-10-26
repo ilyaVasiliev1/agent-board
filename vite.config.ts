@@ -12,6 +12,6 @@ export default defineConfig({
   resolve: { alias: { '@': fileURLToPath(new URL('./web/src', import.meta.url)) } },
   build: { outDir: '../dist', emptyOutDir: true },
   // В разработке запросы к данным идут на запущенный локальный сервер доски.
-  server: { proxy: { '/api': API, '/config.json': API } },
+  server: { proxy: { '/api': API, '/config.json': API, '/mode.json': API } },
   test: { environment: 'jsdom', setupFiles: ['./src/test/setup.ts'], globals: true, css: false },
 });

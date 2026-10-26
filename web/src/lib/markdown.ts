@@ -5,10 +5,13 @@ export type Inline =
   | { kind: 'strong'; value: string }
   | { kind: 'link'; label: string; href: string };
 
+/** Пункт списка; у пунктов-галочек («- [x] …») task говорит, сделан ли пункт. */
+export interface ListItem { inlines: Inline[]; task?: 'done' | 'todo' }
+
 export type Block =
   | { kind: 'heading'; inlines: Inline[] }
   | { kind: 'paragraph'; inlines: Inline[] }
-  | { kind: 'list'; items: Inline[][] };
+  | { kind: 'list'; items: ListItem[] };
 
 const INLINE = /`([^`]+)`|\*\*([^*]+)\*\*|\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g;
 
@@ -28,12 +31,13 @@ export function parseInline(text: string): Inline[] {
 
 export function parseMarkdown(source: string): Block[] {
   const blocks: Block[] = [];
-  let list: Inline[][] | null = null;
+  let list: ListItem[] | null = null;
   for (const line of source.split('\n')) {
-    const item = /^\s*(?:[-*]|- \[[ xX]\])\s+(.*)$/.exec(line);
+    const task = /^\s*[-*]\s+\[([ xX])\]\s+(.*)$/.exec(line);
+    const item = task ?? /^\s*[-*]\s+(.*)$/.exec(line);
     if (item) {
       if (!list) { list = []; blocks.push({ kind: 'list', items: list }); }
-      list.push(parseInline(item[1] ?? ''));
+      list.push(task ? { inlines: parseInline(task[2] ?? ''), task: task[1] === ' ' ? 'todo' : 'done' } : { inlines: parseInline(item[1] ?? '') });
       continue;
     }
     list = null;
