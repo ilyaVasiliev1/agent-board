@@ -2,7 +2,7 @@
 """Запускает `claude --cloud` в эмулированном терминале и печатает JSON с ID сессии.
 
 CLI отказывается создавать облачную сессию без TTY, поэтому из процесса панели его
-вызывают через pty. Использование: dispatch.py <папка проекта> <промпт>
+вызывают через pty. Использование: dispatch.py <папка проекта> <промпт> [модель]
 """
 import json
 import os
@@ -23,11 +23,12 @@ def clean(buf: bytes) -> str:
     return ANSI.sub(b"", buf).decode("utf-8", "replace")
 
 
-def main(cwd: str, prompt: str) -> dict:
+def main(cwd: str, prompt: str, model: str = "") -> dict:
     pid, fd = pty.fork()
     if pid == 0:
         os.chdir(cwd)
-        os.execvp("claude", ["claude", "--cloud", prompt])
+        args = ["claude", "--model", model] if model else ["claude"]
+        os.execvp("claude", [*args, "--cloud", prompt])
     buf = b""
     found_at = None
     deadline = time.time() + TIMEOUT
@@ -89,4 +90,4 @@ def main(cwd: str, prompt: str) -> dict:
 
 
 if __name__ == "__main__":
-    print(json.dumps(main(sys.argv[1], sys.argv[2]), ensure_ascii=False))
+    print(json.dumps(main(*sys.argv[1:4]), ensure_ascii=False))

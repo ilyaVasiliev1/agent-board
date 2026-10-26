@@ -9,5 +9,24 @@
       "reportUrl": "https://ilyavasiliev1.github.io/coffee-site/preview/task-{n}-report/",
       "stagingUrl": "https://ilyavasiliev1.github.io/coffee-site/staging/"
     }
-  ]
+  ],
+  "models": [
+    {
+      "id": "sonnet",
+      "title": "Sonnet 5.5"
+    },
+    {
+      "id": "opus",
+      "title": "Opus 5.5"
+    },
+    {
+      "id": "fable",
+      "title": "Fable 5.1"
+    },
+    {
+      "id": "haiku",
+      "title": "Haiku 5.5"
+    }
+  ],
+  "defaultModel": "sonnet"
 }
