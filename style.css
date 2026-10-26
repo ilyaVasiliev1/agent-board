@@ -69,3 +69,12 @@ dialog menu { display: flex; gap: 8px; justify-content: flex-end; padding: 0; ma
 .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; max-width: calc(100% - 32px); }
 .toast[hidden] { display: none; }
 .empty { color: var(--muted); font-size: 13px; padding: 6px 4px; }
+.timeline { list-style: none; margin: 8px 0; padding: 0; border-left: 2px solid var(--line); }
+.timeline li { padding: 4px 0 4px 12px; font-size: 13px; position: relative; }
+.timeline li::before { content: ''; position: absolute; left: -5px; top: 11px; width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.timeline li.commit::before { background: var(--accent); }
+.timeline time { color: var(--muted); margin-right: 8px; }
+.checks { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+.check-ok { color: var(--ok); }
+.check-bad { color: var(--warn); }
+.stalled { color: var(--warn); }

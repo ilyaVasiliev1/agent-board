@@ -4,22 +4,10 @@
       "id": "coffee-site",
       "title": "Зерно · сайт кофейни",
       "repo": "ilyaVasiliev1/coffee-site",
-      "previewUrl": "https://ilyavasiliev1.github.io/coffee-site/preview/issue-{n}/",
-      "reportUrl": "https://ilyavasiliev1.github.io/coffee-site/preview/issue-{n}-report/",
-      "stagingUrl": "https://ilyavasiliev1.github.io/coffee-site/staging/",
-      "cli": "~/Developer/harness/tools/board.sh coffee-site"
-    }
-  ],
-  "engines": [
-    {
-      "id": "claude",
-      "title": "Claude в облаке (с Мака)",
-      "via": "cli"
-    },
-    {
-      "id": "hermes",
-      "title": "Hermes (GitHub Actions)",
-      "via": "api"
+      "dir": "~/Developer/laboratory/coffee-site",
+      "previewUrl": "https://ilyavasiliev1.github.io/coffee-site/preview/task-{n}/",
+      "reportUrl": "https://ilyavasiliev1.github.io/coffee-site/preview/task-{n}-report/",
+      "stagingUrl": "https://ilyavasiliev1.github.io/coffee-site/staging/"
     }
   ]
 }
