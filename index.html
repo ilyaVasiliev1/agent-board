@@ -19,8 +19,7 @@
     <dialog id="dlg-new">
       <form method="dialog" id="form-new">
         <h2>Новая задача</h2>
-        <label>Что сделать <input id="new-title" required maxlength="120" /></label>
-        <label>Подробности <textarea id="new-body" rows="6"></textarea></label>
+        <label>Задача <textarea id="new-text" rows="8" required placeholder="Опишите задачу своими словами. Первая строка станет заголовком карточки."></textarea></label>
         <label>Модель <select id="new-model"></select></label>
         <label>Уровень усилий <select id="new-effort"></select></label>
         <label class="check"><input type="checkbox" id="new-send" checked /> Сразу отправить в облако</label>

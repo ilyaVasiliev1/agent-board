@@ -38,10 +38,13 @@ function run(cmd, args, opts = {}) {
 }
 const gh = async (args) => JSON.parse((await run('gh', args)) || 'null');
 
+// Текст задачи: у новых задач в body лежит всё написанное, у старых заголовок и описание были раздельно.
+const textOf = (t) => (t.body && t.body.startsWith(t.title) ? t.body : [t.title, t.body].filter(Boolean).join('\n'));
+
 function prompt(task, extra = '') {
   return [
-    `Ты исполнитель доски задач. Задача #${task.id}: ${task.title}`,
-    task.body ? `\nОписание:\n${task.body}` : '',
+    `Ты исполнитель доски задач. Задача #${task.id}:`,
+    textOf(task),
     `\nВетка claude/task-${task.id}. Выполни протокол из .agent/PROTOCOL.md: draft PR сразу, ход работы в теле PR, отчёт в конце.`,
     extra,
   ].join('\n');
@@ -114,18 +117,30 @@ async function close(task) {
   event(task, 'Закрыто без выполнения.');
 }
 
+// Ссылки на превью, отчёт тестов и скриншоты берутся из комментария workflow «## Превью» в PR.
+async function syncLinks(task, project) {
+  try {
+    const v = await gh(['pr', 'view', String(task.pr.number), '-R', project.repo, '--json', 'comments']);
+    const c = [...v.comments].reverse().find((x) => x.body.startsWith('## Превью'));
+    if (!c) return;
+    const pick = (label) => new RegExp(`${label}:\\s*(https?://\\S+)`).exec(c.body)?.[1];
+    task.links = { site: pick('Сайт'), report: pick('Отчёт тестов со скриншотами'), desktop: pick('Скриншот \\(компьютер\\)'), mobile: pick('Скриншот \\(телефон\\)'), tests: /Тесты в облаке: (\S+)/.exec(c.body)?.[1] };
+  } catch { /* комментария ещё нет */ }
+}
+
 // Состояние задачи выводится из PR: draft и «Ход работы» — идёт работа, «## Отчёт» без draft — готово к проверке.
 async function syncTask(task) {
   const project = projectOf(task.project);
-  // Облако дописывает к имени ветки случайный хвост (claude/task-5-bxeue1), поэтому PR ищется по префиксу.
+  // Имя ветки облако назначает само (claude/task-5-bxeue1, claude/menu-raf-…), поэтому PR ищется по заголовку «[#N] …».
   const prs = await gh(['pr', 'list', '-R', project.repo, '--state', 'all', '--limit', '50',
     '--json', 'number,url,state,isDraft,body,mergedAt,updatedAt,title,headRefName']);
   const base = `claude/task-${task.id}`;
-  const pr = prs.filter((p) => p.headRefName === base || p.headRefName.startsWith(`${base}-`))
+  const pr = prs.filter((p) => p.title.startsWith(`[#${task.id}]`) || p.headRefName === base || p.headRefName.startsWith(`${base}-`))
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
   if (!pr) return;
   task.pr = pr;
   task.branch = pr.headRefName;
+  await syncLinks(task, project);
   if (pr.mergedAt) { if (task.status !== 'done') { task.status = 'done'; event(task, 'PR влит.'); } return; }
   if (pr.state === 'CLOSED') { if (task.status !== 'closed') { task.status = 'closed'; event(task, 'PR закрыт.'); } return; }
   const hasReport = pr.body?.startsWith('## Отчёт');
@@ -206,8 +221,11 @@ const server = http.createServer(async (req, res) => {
     }
     if (req.method === 'POST' && parts[1] === 'tasks' && !parts[2]) {
       const b = await body(req);
-      if (!b.title?.trim()) return send(400, { error: 'нужен заголовок' });
-      const task = { id: Math.max(0, ...tasks.map((t) => t.id)) + 1, project: b.project ?? config.projects[0].id, title: b.title.trim(), body: (b.body ?? '').trim(), model: modelOk(b.model) ? b.model : config.defaultModel, effort: effortOk(b.effort) ? b.effort : config.defaultEffort, status: 'backlog', createdAt: now(), events: [] };
+      // Одно поле: заголовок карточки это первая строка, весь текст уходит в облако как задача.
+      const text = (b.text ?? [b.title, b.body].filter(Boolean).join('\n')).trim();
+      if (!text) return send(400, { error: 'опишите задачу' });
+      const firstLine = text.split('\n').find((l) => l.trim()) ?? text;
+      const task = { id: Math.max(0, ...tasks.map((t) => t.id)) + 1, project: b.project ?? config.projects[0].id, title: firstLine.replace(/^#+\s*/, '').trim().slice(0, 100), body: text, model: modelOk(b.model) ? b.model : config.defaultModel, effort: effortOk(b.effort) ? b.effort : config.defaultEffort, status: 'backlog', createdAt: now(), events: [] };
       tasks.push(task); event(task, 'Задача создана.');
       if (b.send) await dispatch(task);
       return send(200, view(task));

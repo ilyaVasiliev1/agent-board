@@ -99,6 +99,16 @@ function renderBoard() {
       if (col.id === 'running') meta.append(el('span', { className: 'badge run pulse', textContent: t.pr ? 'идёт работа' : 'в облаке' }), el('span', { textContent: ago(t.sentAt) }));
       if (col.id === 'review' && t.pr) meta.append(el('span', { className: 'badge', textContent: 'PR #' + t.pr.number }));
       const card = el('div', { className: 'card', tabIndex: 0 }, el('div', { className: 't', textContent: t.title }), meta);
+      if (t.links?.site && col.id === 'review') {
+        const chips = el('div', { className: 'chips' });
+        for (const [text, href] of [['Сайт', t.links.site], ['Отчёт', t.links.report]]) {
+          if (!href) continue;
+          const a = el('a', { className: 'chip', textContent: text, href, target: '_blank', rel: 'noopener' });
+          a.addEventListener('click', (e) => e.stopPropagation());
+          chips.append(a);
+        }
+        card.append(chips);
+      }
       card.addEventListener('click', () => openDrawer(t.id));
       card.addEventListener('keydown', (e) => { if (e.key === 'Enter') openDrawer(t.id); });
       column.append(card);
@@ -136,29 +146,33 @@ async function refreshDrawer() {
   if (!t) { body.textContent = 'Задача не найдена.'; return; }
   let log = { events: t.events, commits: [], comments: [], checks: [], pr: t.pr };
   try { log = await api(`/api/tasks/${t.id}/log`); } catch { /* показываем локальные события */ }
-  // Пока пользователь печатает правку, не пересобираем панель: иначе пропадёт текст.
-  const typing = body.querySelector('textarea')?.value;
-  if (typing && body.dataset.id === String(t.id) && body.dataset.status === t.status) return;
-  body.dataset.id = String(t.id);
-  body.dataset.status = t.status;
+  // Перерисовываем только при изменении данных: иначе мигают скриншоты и пропадает набранная правка.
+  const sig = JSON.stringify([t.id, t.status, t.events.length, t.links, log.commits.length, log.comments.length, log.pr?.updatedAt, log.pr?.body, log.checks]);
+  if (body.dataset.sig === sig) return;
+  body.dataset.sig = sig;
 
   body.replaceChildren(el('h2', { textContent: t.title }));
   body.append(el('div', { className: 'm', textContent: `#${t.id} · ${COLUMNS.find((c) => c.id === t.status)?.title ?? t.status} · ${modelTitle(t.model)} · усилие: ${effortTitle(t.effort).toLowerCase()}` }));
-  if (t.body) body.append(el('div', { className: 'report', innerHTML: md(t.body) }));
+  if (t.body && t.body !== t.title) body.append(el('div', { className: 'report', innerHTML: md(t.body) }));
 
   const links = el('div', { className: 'links' });
   const link = (text, href) => links.append(el('a', { textContent: text, href, target: '_blank', rel: 'noopener' }));
   if (t.sessionUrl) link('Сессия Claude (полный лог)', t.sessionUrl);
   if (log.pr) link(`PR #${log.pr.number}`, log.pr.url);
-  // Ссылки берём из комментария workflow: имя ветки задачи может нести хвост от облака.
-  const preview = [...log.comments].reverse().find((c) => c.body.startsWith('## Превью'));
-  if (preview) {
-    const pick = (label) => new RegExp(`${label}:\\s*(https?://\\S+)`).exec(preview.body)?.[1];
-    link('Превью сайта', pick('Сайт') ?? fill(project.previewUrl, t.id));
-    link('Отчёт тестов и скриншоты', pick('Отчёт тестов со скриншотами') ?? fill(project.reportUrl, t.id));
-  }
-  if (t.status === 'done') link('Бета', project.stagingUrl);
+  // Ссылки сервер берёт из комментария workflow в PR: имя ветки задачи может нести хвост от облака.
+  if (t.links?.site) link('Превью сайта', t.links.site);
+  if (t.links?.report) link('Отчёт тестов', t.links.report);
+  if (t.status === 'done') link('Бета (staging)', project.stagingUrl);
   body.append(links);
+  if (t.links?.desktop && t.status !== 'done') {
+    const shots = el('div', { className: 'shots' });
+    for (const [label, src] of [['Компьютер', t.links.desktop], ['Телефон', t.links.mobile]]) {
+      if (!src) continue;
+      const a = el('a', { href: src, target: '_blank', rel: 'noopener', title: label }, el('img', { src, alt: `Скриншот: ${label}`, loading: 'lazy' }));
+      shots.append(a);
+    }
+    body.append(el('h3', { textContent: 'Скриншоты страницы' }), shots);
+  }
 
   if (log.pr?.body) {
     const heading = log.pr.body.startsWith('## Отчёт') ? 'Отчёт исполнителя' : 'Ход работы (из PR)';
@@ -216,8 +230,8 @@ function actionsFor(t) {
     box.append(accept, text, rework);
   }
   if (t.status !== 'done' && t.status !== 'closed') {
-    const close = el('button', { className: 'danger', textContent: 'Закрыть без выполнения' });
-    close.addEventListener('click', act(() => post('close'), 'Закрыто.'));
+    const close = el('button', { className: 'danger', textContent: t.status === 'review' ? 'Отклонить (закрыть PR)' : 'Закрыть без выполнения' });
+    close.addEventListener('click', act(() => post('close'), t.status === 'review' ? 'Отклонено: PR закрыт, ветка удалена.' : 'Закрыто.'));
     box.append(close);
   }
   return box;
@@ -239,7 +253,7 @@ async function init() {
     busy = true;
     const send = $('new-send').checked;
     try {
-      await api('/api/tasks', { method: 'POST', body: { project: project.id, title: $('new-title').value, body: $('new-body').value, model: $('new-model').value, effort: $('new-effort').value, send } });
+      await api('/api/tasks', { method: 'POST', body: { project: project.id, text: $('new-text').value, model: $('new-model').value, effort: $('new-effort').value, send } });
       toast(send ? 'Задача создана и отправлена.' : 'Задача создана.');
     } catch (e) { toast(e.message); } finally { busy = false; await load(); }
   });
