@@ -16,6 +16,7 @@ const SYNC_MS = 20000;
 const config = JSON.parse(readFileSync(join(ROOT, 'config.json'), 'utf8'));
 const dirOf = (p) => p.dir.replace(/^~/, os.homedir());
 const modelOk = (m) => config.models.some((x) => x.id === m);
+const effortOk = (e) => config.efforts.some((x) => x.id === e);
 const projectOf = (id) => config.projects.find((p) => p.id === id) ?? config.projects[0];
 
 let tasks = existsSync(DATA) ? JSON.parse(readFileSync(DATA, 'utf8')) : [];
@@ -61,10 +62,10 @@ async function dispatch(task) {
   task.status = 'running';
   task.sentAt = now();
   task.branch = `claude/task-${task.id}`;
-  event(task, `Отправка в облако, модель: ${task.model}…`);
+  event(task, `Отправка в облако, модель: ${task.model}, усилие: ${task.effort}…`);
   try {
     const dir = await prepareCheckout(task);
-    const out = JSON.parse(await run('python3', [join(ROOT, 'dispatch.py'), dir, prompt(task), task.model]));
+    const out = JSON.parse(await run('python3', [join(ROOT, 'dispatch.py'), dir, prompt(task), task.model, task.effort]));
     if (!out.ok) {
       task.status = 'failed';
       event(task, out.error === 'trust'
@@ -165,7 +166,8 @@ async function logOf(task) {
   return out;
 }
 
-const view = (t) => ({ ...t, project: undefined, projectId: t.project });
+// У задач, созданных до появления выбора, полей model и effort нет: показываем значения по умолчанию.
+const view = (t) => ({ ...t, model: t.model ?? config.defaultModel, effort: t.effort ?? config.defaultEffort, project: undefined, projectId: t.project });
 
 function body(req) {
   return new Promise((resolve, reject) => {
@@ -201,7 +203,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST' && parts[1] === 'tasks' && !parts[2]) {
       const b = await body(req);
       if (!b.title?.trim()) return send(400, { error: 'нужен заголовок' });
-      const task = { id: Math.max(0, ...tasks.map((t) => t.id)) + 1, project: b.project ?? config.projects[0].id, title: b.title.trim(), body: (b.body ?? '').trim(), model: modelOk(b.model) ? b.model : config.defaultModel, status: 'backlog', createdAt: now(), events: [] };
+      const task = { id: Math.max(0, ...tasks.map((t) => t.id)) + 1, project: b.project ?? config.projects[0].id, title: b.title.trim(), body: (b.body ?? '').trim(), model: modelOk(b.model) ? b.model : config.defaultModel, effort: effortOk(b.effort) ? b.effort : config.defaultEffort, status: 'backlog', createdAt: now(), events: [] };
       tasks.push(task); event(task, 'Задача создана.');
       if (b.send) await dispatch(task);
       return send(200, view(task));
@@ -209,7 +211,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST' && parts[1] === 'tasks' && parts[2] && parts[3]) {
       const t = find(parts[2]); if (!t) return send(404, { error: 'нет задачи' });
       const b = await body(req);
-      if (parts[3] === 'send') { if (modelOk(b.model)) t.model = b.model; await dispatch(t); }
+      if (parts[3] === 'send') { if (modelOk(b.model)) t.model = b.model; if (effortOk(b.effort)) t.effort = b.effort; await dispatch(t); }
       else if (parts[3] === 'rework') { if (!b.text?.trim()) return send(400, { error: 'нужен текст правки' }); await rework(t, b.text.trim()); }
       else if (parts[3] === 'accept') await accept(t);
       else if (parts[3] === 'close') await close(t);

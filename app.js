@@ -74,7 +74,14 @@ function md(text) {
 const modelTitle = (id) => config.models.find((m) => m.id === id)?.title ?? id;
 function modelSelect(current) {
   const select = el('select');
-  for (const m of config.models) select.append(el('option', { value: m.id, textContent: m.title, selected: m.id === (current ?? config.defaultModel) }));
+  for (const m of config.models) select.append(el('option', { value: m.id, textContent: m.title, defaultSelected: m.id === (current ?? config.defaultModel) }));
+  return select;
+}
+
+const effortTitle = (id) => config.efforts.find((e) => e.id === id)?.title ?? id;
+function effortSelect(current) {
+  const select = el('select');
+  for (const e of config.efforts) select.append(el('option', { value: e.id, textContent: e.title, defaultSelected: e.id === (current ?? config.defaultEffort) }));
   return select;
 }
 
@@ -88,7 +95,7 @@ function renderBoard() {
     const column = el('section', { className: 'col' }, el('h2', {}, el('span', { textContent: col.title }), el('span', { textContent: String(items.length) })));
     if (!items.length) column.append(el('div', { className: 'empty', textContent: '—' }));
     for (const t of items) {
-      const meta = el('div', { className: 'm' }, el('span', { textContent: `#${t.id}` }), el('span', { className: 'badge', textContent: modelTitle(t.model) }));
+      const meta = el('div', { className: 'm' }, el('span', { textContent: `#${t.id}` }), el('span', { className: 'badge', textContent: modelTitle(t.model) }), el('span', { className: 'badge', textContent: effortTitle(t.effort).toLowerCase() }));
       if (col.id === 'running') meta.append(el('span', { className: 'badge run pulse', textContent: t.pr ? 'идёт работа' : 'в облаке' }), el('span', { textContent: ago(t.sentAt) }));
       if (col.id === 'review' && t.pr) meta.append(el('span', { className: 'badge', textContent: 'PR #' + t.pr.number }));
       const card = el('div', { className: 'card', tabIndex: 0 }, el('div', { className: 't', textContent: t.title }), meta);
@@ -136,7 +143,7 @@ async function refreshDrawer() {
   body.dataset.status = t.status;
 
   body.replaceChildren(el('h2', { textContent: t.title }));
-  body.append(el('div', { className: 'm', textContent: `#${t.id} · ${COLUMNS.find((c) => c.id === t.status)?.title ?? t.status} · ${modelTitle(t.model)}` }));
+  body.append(el('div', { className: 'm', textContent: `#${t.id} · ${COLUMNS.find((c) => c.id === t.status)?.title ?? t.status} · ${modelTitle(t.model)} · усилие: ${effortTitle(t.effort).toLowerCase()}` }));
   if (t.body) body.append(el('div', { className: 'report', innerHTML: md(t.body) }));
 
   const links = el('div', { className: 'links' });
@@ -189,9 +196,10 @@ function actionsFor(t) {
 
   if (t.status === 'backlog' || t.status === 'failed') {
     const model = modelSelect(t.model);
+    const effort = effortSelect(t.effort);
     const send = el('button', { className: 'primary', textContent: t.status === 'failed' ? 'Отправить снова' : 'Отправить в облако' });
-    send.addEventListener('click', act(() => post('send', { model: model.value }), 'Отправлено. Можно закрывать ноутбук: результат появится в GitHub.'));
-    box.append(el('label', { className: 'hint', textContent: 'Модель' }), model, send);
+    send.addEventListener('click', act(() => post('send', { model: model.value, effort: effort.value }), 'Отправлено. Можно закрывать ноутбук: результат появится в GitHub.'));
+    box.append(el('label', { className: 'hint', textContent: 'Модель' }), model, el('label', { className: 'hint', textContent: 'Уровень усилий' }), effort, send);
   }
   if (t.status === 'review') {
     const accept = el('button', { className: 'primary', textContent: 'Принять' });
@@ -216,6 +224,7 @@ async function init() {
   config = await (await fetch('config.json')).json();
   const select = $('project');
   $('new-model').replaceWith(Object.assign(modelSelect(), { id: 'new-model' }));
+  $('new-effort').replaceWith(Object.assign(effortSelect(), { id: 'new-effort' }));
   for (const p of config.projects) select.append(el('option', { value: p.id, textContent: p.title }));
   project = config.projects[0];
   select.addEventListener('change', () => { project = config.projects.find((p) => p.id === select.value); closeDrawer(); renderBoard(); });
@@ -227,7 +236,7 @@ async function init() {
     busy = true;
     const send = $('new-send').checked;
     try {
-      await api('/api/tasks', { method: 'POST', body: { project: project.id, title: $('new-title').value, body: $('new-body').value, model: $('new-model').value, send } });
+      await api('/api/tasks', { method: 'POST', body: { project: project.id, title: $('new-title').value, body: $('new-body').value, model: $('new-model').value, effort: $('new-effort').value, send } });
       toast(send ? 'Задача создана и отправлена.' : 'Задача создана.');
     } catch (e) { toast(e.message); } finally { busy = false; await load(); }
   });

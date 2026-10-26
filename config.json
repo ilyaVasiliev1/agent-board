@@ -28,5 +28,28 @@
       "title": "Haiku 5.5"
     }
   ],
-  "defaultModel": "sonnet"
+  "defaultModel": "sonnet",
+  "efforts": [
+    {
+      "id": "low",
+      "title": "Низкий"
+    },
+    {
+      "id": "medium",
+      "title": "Средний"
+    },
+    {
+      "id": "high",
+      "title": "Высокий"
+    },
+    {
+      "id": "xhigh",
+      "title": "Очень высокий"
+    },
+    {
+      "id": "max",
+      "title": "Максимальный"
+    }
+  ],
+  "defaultEffort": "high"
 }
