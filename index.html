@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Доска агентов</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="bar">
+      <h1>Доска агентов</h1>
+      <select id="project" aria-label="Проект"></select>
+      <span class="spacer"></span>
+      <span id="sync" class="sync" aria-live="polite"></span>
+      <button id="new" class="primary">Новая задача</button>
+      <button id="settings" title="Доступ к GitHub">Доступ</button>
+    </header>
+    <main id="board" class="board"></main>
+
+    <dialog id="dlg-new">
+      <form method="dialog" id="form-new">
+        <h2>Новая задача</h2>
+        <label>Что сделать <input id="new-title" required maxlength="120" /></label>
+        <label>Подробности <textarea id="new-body" rows="6"></textarea></label>
+        <label>Исполнитель
+          <select id="new-engine"></select>
+        </label>
+        <label class="check"><input type="checkbox" id="new-send" checked /> Сразу отправить на исполнение</label>
+        <menu>
+          <button type="button" data-close>Отмена</button>
+          <button value="ok" class="primary">Создать</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <dialog id="dlg-settings">
+      <form method="dialog" id="form-settings">
+        <h2>Доступ к GitHub</h2>
+        <p class="hint">Токен хранится только в этом браузере. Нужен fine-grained токен на репозитории проекта с правами Issues, Pull requests, Contents: Read and write.</p>
+        <label>Токен <input id="token" type="password" autocomplete="off" /></label>
+        <menu>
+          <button type="button" data-close>Отмена</button>
+          <button id="prepare" type="button">Подготовить метки в репозитории</button>
+          <button value="ok" class="primary">Сохранить</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <aside id="drawer" class="drawer" hidden>
+      <button id="drawer-close" class="close" aria-label="Закрыть">×</button>
+      <div id="drawer-body"></div>
+    </aside>
+
+    <div id="toast" class="toast" role="status" hidden></div>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
