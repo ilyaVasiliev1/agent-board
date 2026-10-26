@@ -5,7 +5,6 @@
       "title": "Зерно · сайт кофейни",
       "repo": "ilyaVasiliev1/coffee-site",
       "dir": "~/Developer/laboratory/coffee-site",
-      "stagingUrl": "https://ilyavasiliev1.github.io/coffee-site/staging/",
       "cloud": {
         "mode": "full",
         "summary": "Веб-сайт: код, тесты и превью работают в облаке.",
