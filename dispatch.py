@@ -79,8 +79,12 @@ def main(cwd: str, prompt: str) -> dict:
                 break
             if not pid:
                 break
-    if "isnotonGitHub" in clean(buf).replace(" ", ""):
+    flat = clean(buf).replace(" ", "")
+    if "isnotonGitHub" in flat:
         result["warning"] = "Ветка не на GitHub: сессия стартовала не с вашей ветки."
+    # Без Claude GitHub App на репозитории CLI грузит в облако архив папки: там нет origin и пушить некуда.
+    if re.search(r"bundl|upload", flat, re.I):
+        result["warning"] = "Облако получило архив папки, а не клон с GitHub: пуш не заработает. Установите Claude GitHub App на репозиторий."
     return result
 
 
